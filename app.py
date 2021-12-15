@@ -12,6 +12,7 @@ app = FastAPI()
 
 @app.get('/api/minizinc/upload/')
 def get_signed_upload_url(UUID: Optional[str] = Query(None)):
+    # If UUID is given and it doesnt exist in the database return 404.
     # If UUID is given, it will create a link for PUT where you can update what is already stored
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
     if UUID:
@@ -29,6 +30,7 @@ def upload_file(file: File):
 @app.get('/api/minizinc/{userID}/')
 def get_user_files(userID):
     # Returns all files, i.e. filename and file UUID for a given user.
+    # If database doesnt contain userID return 404
     return "Yes."
 
 
@@ -36,16 +38,19 @@ def get_user_files(userID):
 def delete_user(userID):
     # Remove all rows from database
     # Remove all files from google storage
+    # If database doesnt contain userID return 404
     return f"User: {userID} - deleted!"
 
 
 @app.get('/api/minizinc/{userID}/{fileUUID}')
 def get_file(userID, fileUUID):
+    # If database doesnt contain userID/fileUUID return 404
     return generateGetUrl(fileName=fileUUID)
 
 
 @app.delete('/api/minizinc/{userID}/{fileUUID}')
 def del_file(userID, fileUUID):
+    # If userId or fileUUID does not exist in database return 404.
     # Remove row from database.
     # Remove file from google storage
     fileName = "Get filename from database."
