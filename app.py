@@ -1,60 +1,55 @@
-from fastapi import FastAPI, Query
-from storage import generatePostUrl, generateGetUrl
-from pydantic import BaseModel
+from os import stat
+from fastapi import FastAPI, Query, HTTPException
+import google_storage
+import mysql_storage
 from typing import Optional
-
-class File(BaseModel):
-    userID: int
-    fileName: str
-    fileUUID: str
+from models import File
 
 app = FastAPI()
 
 @app.get('/api/minizinc/upload/')
-def get_signed_upload_url(UUID: Optional[str] = Query(None)):
-    # If UUID is given and it doesnt exist in the database return 404.
+def get_signed_upload_url(userID, fileUUID: Optional[str] = Query(None)):
     # If UUID is given, it will create a link for PUT where you can update what is already stored
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
-    if UUID:
-        return generatePostUrl(UUID)
+    if fileUUID:
+        if not mysql_storage.file_exists(userID, fileUUID):
+            raise HTTPException(status_code=404, detail='File not found.')
+        return google_storage.generatePostUrl(fileUUID)
     else:
-        return generatePostUrl()
+        return google_storage.generatePostUrl()
 
 @app.post('/api/minizinc/upload/')
 def upload_file(file: File):
-    # Need this information stored in the database.
-    # Insert file into database.
-    return file
+    return mysql_storage.create_file(file)
 
 
 @app.get('/api/minizinc/{userID}/')
 def get_user_files(userID):
-    # Returns all files, i.e. filename and file UUID for a given user.
-    # If database doesnt contain userID return 404
-    return "Yes."
+    if not mysql_storage.user_exists(userID):
+        raise HTTPException(status_code=404, detail='User not found.')
+    return mysql_storage.get_files(userID)
 
 
 @app.delete('/api/minizinc/{userID}/')
 def delete_user(userID):
-    # Remove all rows from database
-    # Remove all files from google storage
-    # If database doesnt contain userID return 404
-    return f"User: {userID} - deleted!"
+    # Delete all files for the user from google storage.
+    return mysql_storage.delete_files(userID)
 
 
 @app.get('/api/minizinc/{userID}/{fileUUID}')
 def get_file(userID, fileUUID):
-    # If database doesnt contain userID/fileUUID return 404
-    return generateGetUrl(fileName=fileUUID)
+    if not mysql_storage.file_exists(userID, fileUUID):
+        raise HTTPException(status_code=404, detail='No such file exists for the given user.')
+    return google_storage.generateGetUrl(fileName=fileUUID)
 
 
 @app.delete('/api/minizinc/{userID}/{fileUUID}')
-def del_file(userID, fileUUID):
-    # If userId or fileUUID does not exist in database return 404.
-    # Remove row from database.
-    # Remove file from google storage
-    fileName = "Get filename from database."
-    return f"File: {fileName} - deleted!"
+def delete_file(userID, fileUUID):
+    if not mysql_storage.file_exists(userID, fileUUID):
+        raise HTTPException(status_code=404, detail='No such file exists for the given user')
+    files = mysql_storage.get_file(userID, fileUUID)
+    # Need to remove the files from google storage
+    return mysql_storage.delete_file(userID, fileUUID)
 
 
 
