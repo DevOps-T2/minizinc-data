@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: minizinc-app-service
+  name: minizinc-app
 spec:
   selector:
     app: minizinc-app
