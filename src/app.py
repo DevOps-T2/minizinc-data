@@ -60,6 +60,3 @@ def delete_file(userID : int, fileUUID : str):
     google_storage.delete_file(fileUUID)
     row_count = mysql_storage.delete_file(userID, fileUUID)
     return 'Success! - ${row_count} file(s) deleted'
-
-
-

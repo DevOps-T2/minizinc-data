@@ -6,8 +6,8 @@ from models import SignedUrl
 import uuid
 
 
-CREDENTIALS = service_account.Credentials.from_service_account_file('key.json')
-STORAGE_CLIENT = storage.Client(credentials=CREDENTIALS)
+#CREDENTIALS = service_account.Credentials.from_service_account_file('key.json')
+#STORAGE_CLIENT = storage.Client(credentials=CREDENTIALS)
 BUCKET_NAME = 'minizinc_data'
 
 # Any link generated will expire in x mintues from now where x=EXPIRE_MINUTES
