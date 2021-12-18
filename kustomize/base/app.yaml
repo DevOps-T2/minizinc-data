@@ -23,8 +23,15 @@ spec:
       labels:
         app: minizinc-app
     spec:
+      volumes:
+        - name:  service-account-key
+          secret:
+            secretName: storage-key
       containers:
       - name: minizinc-app
         image: minizinc
         ports:
         - containerPort: 80
+        volumeMounts:
+          - name:  service-account-key
+            mountPath: /src/key.json
