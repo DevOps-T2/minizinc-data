@@ -76,7 +76,9 @@ jobs:
       # Create service account key file
       - name: Create Service Account key file
         run: |-
-          gcloud iam service-accounts keys create src/key.json --iam-account=sa-storage@$PROJECT_ID.iam.gserviceaccount.com
+          gcloud iam service-accounts keys create temp.json --iam-account=sa-storage@$PROJECT_ID.iam.gserviceaccount.com
+          touch ./src/key.json
+          cat temp.json >> ./src/key.json
 
       # Deploy the Docker image to the GKE cluster
       - name: Deploy
