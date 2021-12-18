@@ -7,7 +7,7 @@ import models
 
 app = FastAPI()
 
-@app.get('/api/minizinc/upload/', response_model=models.SignedUrl)
+@app.get('/api/minizinc/upload', response_model=models.SignedUrl)
 def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
     # If UUID is given, it will create a link for PUT where you can update what is already stored
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
