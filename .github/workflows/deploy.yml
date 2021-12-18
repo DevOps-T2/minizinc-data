@@ -76,7 +76,7 @@ jobs:
       - name: Deploy
         uses: imranismail/setup-kustomize@v3.1.0
         run: |-
-          ./kustomize edit set image minizinc=europe-west1-docker.pkg.dev/$PROJECT_ID/docker-images/$IMAGE:$GITHUB_SHA
-          ./kustomize build ./kustomize/overlays/$ENVIRONMENT | kubectl apply -f -
+          kustomize edit set image minizinc=europe-west1-docker.pkg.dev/$PROJECT_ID/docker-images/$IMAGE:$GITHUB_SHA
+          kustomize build ./kustomize/overlays/$ENVIRONMENT | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
           kubectl get services -o wide
