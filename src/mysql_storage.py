@@ -90,11 +90,12 @@ def __execute_read_prep_statement(connection, query, values):
 
 def __execute_write_prep_statement(connection, query, values):
     cursor = connection.cursor(prepared=True)
-    result = cursor.execute(query, values)
+    cursor.execute(query, values)
     connection.commit()
+    row_count = cursor.rowcount
     cursor.close()
     connection.close()
-    return result
+    return row_count
 
 
 def __convert_to_model(l):

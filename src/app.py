@@ -20,7 +20,10 @@ def get_signed_upload_url(userID : Optional[int] = Query(None), fileUUID: Option
 
 @app.post('/api/minizinc/upload/')
 def upload_file(file: models.File):
-    return mysql_storage.create_file(file)
+    if not google_storage.file_exists(file.fileUUID):
+        return HTTPException(status_code=400, detail='No such file found in storage')
+    row_count = mysql_storage.create_file(file)
+    return "File uploaded!"
 
 
 @app.get('/api/minizinc/{userID}/')

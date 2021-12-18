@@ -1,0 +1,1 @@
+docker build ../minizinc-data/ -t minizinc; docker tag minizinc europe-west1-docker.pkg.dev/spherical-being-330016/docker-images/minizinc; docker push europe-west1-docker.pkg.dev/spherical-being-330016/docker-images/minizinc; kubectl apply -k ./kustomize/overlays/dev

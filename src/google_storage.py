@@ -42,6 +42,12 @@ def generateGetUrl(fileName):
     )
 
 
+def file_exists(fileName):
+    bucket = STORAGE_CLIENT.bucket(BUCKET_NAME)
+    file = bucket.blob(fileName)
+    return file.exists()
+
+
 def delete_file(fileName):
     bucket = STORAGE_CLIENT.bucket(BUCKET_NAME)
     file = bucket.blob(fileName)
