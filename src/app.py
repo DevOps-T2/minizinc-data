@@ -1,13 +1,18 @@
 from os import stat
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, APIRouter
 from typing import Optional
 import google_storage
 import mysql_storage
 import models
 
-app = FastAPI()
 
-@app.get('/api/minizinc/upload', response_model=models.SignedUrl)
+app = FastAPI()
+router = APIRouter()
+
+# Had to include double route with and without trailing backslash to please the gateway-gods
+# See: https://github.com/tiangolo/fastapi/issues/2060
+@router.get('/api/minizinc/upload', response_model=models.SignedUrl, include_in_schema=False)
+@router.get('/api/minizinc/upload/', response_model=models.SignedUrl)
 def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
     # If UUID is given, it will create a link for PUT where you can update what is already stored
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
@@ -18,7 +23,9 @@ def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Option
     else:
         return google_storage.generatePostUrl()
 
-@app.post('/api/minizinc/upload/')
+
+@router.post('/api/minizinc/upload', include_in_schema=False)
+@router.post('/api/minizinc/upload/')
 def upload_file(file: models.File):
     if not google_storage.file_exists(file.fileUUID):
         return HTTPException(status_code=400, detail='No such file found in storage')
@@ -28,14 +35,16 @@ def upload_file(file: models.File):
     return "File uploaded!"
 
 
-@app.get('/api/minizinc/{userID}/')
+@router.get('/api/minizinc/{userID}', include_in_schema=False)
+@router.get('/api/minizinc/{userID}/')
 def get_user_files(userID : str):
     if not mysql_storage.user_exists(userID):
         raise HTTPException(status_code=404, detail='User not found.')
     return mysql_storage.get_files(userID)
 
 
-@app.delete('/api/minizinc/{userID}/')
+@router.delete('/api/minizinc/{userID}', include_in_schema=False)
+@router.delete('/api/minizinc/{userID}/')
 def delete_user(userID : str):
     files = mysql_storage.get_files(userID)
     for file in files:
@@ -45,14 +54,16 @@ def delete_user(userID : str):
     return f'Success! - ${row_count} file(s) deleted'
 
 
-@app.get('/api/minizinc/{userID}/{fileUUID}')
+@router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
+@router.get('/api/minizinc/{userID}/{fileUUID}/')
 def get_file(userID : str, fileUUID : str):
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user.')
     return google_storage.generateGetUrl(fileName=fileUUID)
 
 
-@app.delete('/api/minizinc/{userID}/{fileUUID}')
+@router.delete('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
+@router.delete('/api/minizinc/{userID}/{fileUUID}/')
 def delete_file(userID : str, fileUUID : str):
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user')
@@ -60,3 +71,6 @@ def delete_file(userID : str, fileUUID : str):
     google_storage.delete_file(fileUUID)
     row_count = mysql_storage.delete_file(userID, fileUUID)
     return 'Success! - ${row_count} file(s) deleted'
+
+
+app.include_router(router)
