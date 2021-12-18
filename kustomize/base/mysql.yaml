@@ -38,7 +38,7 @@ data:
   initdb-sql.sql: |-
     CREATE TABLE IF NOT EXISTS Default.files (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    userID INTEGER NOT NULL,
+    userID VARCHAR(255) NOT NULL,
     fileName VARCHAR(255) NOT NULL,
     fileUUID VARCHAR(255) NOT NULL,
     CONSTRAINT UC_file UNIQUE (userID, fileUUID),

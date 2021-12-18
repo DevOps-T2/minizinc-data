@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class File(BaseModel):
-    userID: int
+    userID: str
     fileName: str
     fileUUID: str
 
