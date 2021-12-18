@@ -54,6 +54,12 @@ jobs:
           location: ${{ env.GKE_ZONE }}
           credentials: ${{ secrets.GKE_SA_KEY }}
 
+      # Create service account key file
+      - name: Create Service Account key file
+        run: |-
+          gcloud iam service-accounts keys create ./src/key.json --iam-account=sa-storage@$PROJECT_ID.iam.gserviceaccount.com
+          
+
       # Build the Docker image
       - name: Build
         run: |-
@@ -72,13 +78,6 @@ jobs:
         run: |-
           curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64 --output k
           chmod u+x ./k
-
-      # Create service account key file
-      - name: Create Service Account key file
-        run: |-
-          gcloud iam service-accounts keys create temp.json --iam-account=sa-storage@$PROJECT_ID.iam.gserviceaccount.com
-          touch ./src/key.json
-          cat temp.json >> ./src/key.json
 
       # Deploy the Docker image to the GKE cluster
       - name: Deploy
