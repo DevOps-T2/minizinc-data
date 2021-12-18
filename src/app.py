@@ -13,7 +13,7 @@ def get_signed_upload_url(userID : Optional[int] = Query(None), fileUUID: Option
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
     if fileUUID and userID:
         if not mysql_storage.file_exists(userID, fileUUID):
-            raise HTTPException(status_code=404, detail='File not found.')
+            raise HTTPException(status_code=404, detail='There does not exist a file with the given identifier')
         return google_storage.generatePostUrl(fileUUID)
     else:
         return google_storage.generatePostUrl()
@@ -22,7 +22,9 @@ def get_signed_upload_url(userID : Optional[int] = Query(None), fileUUID: Option
 def upload_file(file: models.File):
     if not google_storage.file_exists(file.fileUUID):
         return HTTPException(status_code=400, detail='No such file found in storage')
-    row_count = mysql_storage.create_file(file)
+    if mysql_storage.file_exists(file.userID, file.fileUUID):
+        return HTTPException(status_code=400, detail='File already exists!')
+    mysql_storage.create_file(file)
     return "File uploaded!"
 
 
@@ -39,7 +41,8 @@ def delete_user(userID : int):
     for file in files:
         google_storage.delete_file(file.fileUUID)
     # Delete all files for the user from google storage.
-    return mysql_storage.delete_files(userID)
+    row_count = mysql_storage.delete_files(userID)
+    return f'Success! - ${row_count} file(s) deleted'
 
 
 @app.get('/api/minizinc/{userID}/{fileUUID}')
@@ -55,7 +58,8 @@ def delete_file(userID : int, fileUUID : str):
         raise HTTPException(status_code=404, detail='No such file exists for the given user')
     files = mysql_storage.get_file(userID, fileUUID)
     google_storage.delete_file(fileUUID)
-    return mysql_storage.delete_file(userID, fileUUID)
+    row_count = mysql_storage.delete_file(userID, fileUUID)
+    return 'Success! - ${row_count} file(s) deleted'
 
 
 
