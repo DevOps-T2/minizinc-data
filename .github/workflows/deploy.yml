@@ -76,7 +76,7 @@ jobs:
       - name: Deploy
         run: |-
           (cd ./kustomize/base && ../../k edit set image minizinc=europe-west1-docker.pkg.dev/$PROJECT_ID/docker-images/$IMAGE:$GITHUB_SHA)
-          sed -i "s/\[PROJECT_ID\]/${PROJECT_ID}/g" ./kustomize/base/service-account.yaml
+          sed -i "s/\[PROJECT_ID\]/${PROJECT_ID}/g" ./kustomize/base/storage-account.yaml
           ./k build ./kustomize/overlays/dev | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
           kubectl get services -o wide
