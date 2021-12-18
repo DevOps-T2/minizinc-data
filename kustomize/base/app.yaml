@@ -25,10 +25,10 @@ spec:
     spec:
       containers:
       - name: minizinc-app
-        image: minizinc
+        image: europe-west1-docker.pkg.dev/spherical-being-330016/docker-images/minizinc:latest
         ports:
         - containerPort: 80
-      serviceAccountName: sa-storage
+      serviceAccountName: sa-storage-account
 
 # The service account must have the following roles:
 # roles/iam.workloadIdentityUser

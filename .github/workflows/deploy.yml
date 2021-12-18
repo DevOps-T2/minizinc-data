@@ -24,6 +24,7 @@ env:
   DEPLOYMENT_NAME: minizinc-app # TODO: update to deployment name
   #ENVIRONMENT: dev
   IMAGE: minizinc
+  SA_NAME: sa-storage # Name of the serice account that has permissions to google storage.
 
 jobs:
   setup-build-publish-deploy:
@@ -71,6 +72,11 @@ jobs:
         run: |-
           curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64 --output k
           chmod u+x ./k
+
+      # Create service account key file
+      - name: Create Service Account key file
+        run: |-
+          gcloud iam service-accounts keys create src/key.json --iam-account=sa-storage@$PROJECT_ID.iam.gserviceaccount.com
 
       # Deploy the Docker image to the GKE cluster
       - name: Deploy
