@@ -25,6 +25,6 @@ spec:
     spec:
       containers:
       - name: minizinc-app
-        image: europe-west1-docker.pkg.dev/spherical-being-330016/docker-images/minizinc:latest
+        image: minizinc
         ports:
         - containerPort: 80
