@@ -1,3 +1,4 @@
 resources:
   - mysql.yaml
+  - storage-account.yaml
   - app.yaml
