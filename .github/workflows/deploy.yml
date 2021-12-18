@@ -63,7 +63,7 @@ jobs:
       # Create service account key file
       - name: Create Service Account key file
         run: |-
-          echo "$SA_KEY" >> ./src/key.json
+          echo "$SA_KEY" | base64 --decode >> ./src/key.json
         env:
           SA_KEY: ${{ secrets.GKE_STORAGE_SA_KEY }}
           
