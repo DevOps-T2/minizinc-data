@@ -1,5 +1,8 @@
-__pychache__/*
 node_modules
 key.json
-__pycache__/app.cpython-38.pyc
-__pycache__/storage.cpython-38.pyc
+src\__pycache__
+*.pyc
+src/__pycache__/google_storage.cpython-38.pyc
+src/__pycache__/models.cpython-38.pyc
+src/__pycache__/mysql_storage.cpython-38.pyc
+src/__pycache__/app.cpython-38.pyc
