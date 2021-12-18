@@ -10,6 +10,12 @@
 #
 # For more support on how to run the workflow, please visit https://github.com/google-github-actions/setup-gcloud/tree/master/example-workflows/gke
 
+# This workflow also requires a key for a service account that has permissions to google storage. Must be saved under GKE_STORAGE_SA_KEY
+# The service account must have the following roles:
+# roles/storage.admin
+# How to apply roles see:
+# https://cloud.google.com/iam/docs/creating-managing-service-accounts#iam-service-accounts-list-gcloud 
+
 name: Build and Deploy to GKE
 
 on:
@@ -57,7 +63,7 @@ jobs:
       # Create service account key file
       - name: Create Service Account key file
         run: |-
-          echo ${{ env.GKE_STOAGE_SA_KEY }} >> ./src/key.json
+          echo ${{ secrets.GKE_STOAGE_SA_KEY }} >> ./src/key.json
           
 
       # Build the Docker image
