@@ -1,0 +1,4 @@
+commonLabels:
+  environment: dev
+bases:
+- ../../base

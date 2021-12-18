@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: minizinc-app-service
+spec:
+  selector:
+    app: minizinc-app
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minizinc-app
+spec:
+  selector:
+    matchLabels:
+      app: minizinc-app
+  template:
+    metadata:
+      labels:
+        app: minizinc-app
+    spec:
+      containers:
+      - name: minizinc-app
+        image: minizinc
+        ports:
+        - containerPort: 80
