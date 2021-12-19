@@ -48,6 +48,12 @@ def create_file(file: File):
     return result
 
 
+def update_file(file: File):
+    query = """UPDATE files SET fileName = %s WHERE userID = %s AND fileUUID = %s"""
+    result = __write_prep_statement(query, (file.fileName, file.userID, file.fileUUID))
+    return result
+
+
 def delete_file(userID, fileUUID):
     # delete file with given userid and fileuuid
     query = """DELETE FROM files WHERE userID = %s AND fileUUID = %s"""

@@ -38,6 +38,9 @@ def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Option
 def upload_file(file: models.File):
     if not google_storage.file_exists(file.fileUUID):
         return HTTPException(status_code=400, detail='No such file found in storage')
+    if mysql_storage.file_exists(file.userID, file.fileUUID):
+        mysql_storage.update_file(file)
+        return "File Updated!"
     mysql_storage.create_file(file)
     return "File uploaded!"
 
