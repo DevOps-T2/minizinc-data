@@ -19,13 +19,14 @@ function doSomething()
     {
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
-          console.log(this.status)
-          if (this.status == 200) {
-            console.log(JSON.parse(this.responseText))
+          if (this.status == 200 && this.readyState == xhr.DONE) {
+            var response = JSON.parse(this.responseText)
+            var url = response.url
+            var fileUUID = response.fileUUID
+            uploadFile(file.files[0], url, fileUUID)
           }
         }
         xhr.open('GET', 'http://34.140.9.12/api/minizinc/upload')
-        xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
         xhr.send()
         /*
         var reader = new FileReader();
@@ -37,6 +38,33 @@ function doSomething()
         
         reader.readAsBinaryString(file.files[0]);*/
     }
+}
+function uploadFile(file, url, fileUUID) {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (this.status == 200 && this.readyState == xhr.DONE) {
+      console.log("File PUT!")
+      persistFileUpload("kenny-test", file.name, fileUUID)
+    }
+  }
+  xhr.open('PUT', url)
+  xhr.send(file)
+}
+
+function persistFileUpload(userID, fileName, fileUUID) {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (this.status == 200 && this.readyState == xhr.DONE) {
+      console.log("File persisted!")
+    }
+  }
+  xhr.open('POST', 'http://34.140.9.12/api/minizinc/upload')
+  xhr.setRequestHeader('Content-Type', 'application/json')
+  xhr.send(JSON.stringify({
+    "userID": userID,
+    "fileName": fileName,
+    "fileUUID": fileUUID
+  }))
 }
 
 </script>
