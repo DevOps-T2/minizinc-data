@@ -49,7 +49,8 @@ def upload_file(file: models.File):
 @router.get('/api/minizinc/{userID}/', tags=[info.FILES['name']])
 def get_user_files(userID : str):
     if not mysql_storage.user_exists(userID):
-        raise HTTPException(status_code=404, detail='User not found.')
+        # No user files found
+        return []
     return mysql_storage.get_files(userID)
 
 
