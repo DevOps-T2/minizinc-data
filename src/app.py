@@ -1,6 +1,6 @@
 from os import stat
 from fastapi import FastAPI, Query, HTTPException, APIRouter
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import google_storage
 import mysql_storage
@@ -10,16 +10,6 @@ import models
 app = FastAPI()
 router = APIRouter()
 
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    max_age=3600
-)
 
 
 # Had to include double route with and without trailing backslash to please the gateway-gods
@@ -87,3 +77,13 @@ def delete_file(userID : str, fileUUID : str):
 
 
 app.include_router(router)
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
