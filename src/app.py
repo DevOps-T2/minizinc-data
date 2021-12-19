@@ -64,7 +64,7 @@ def delete_user(userID : str):
 
 
 @router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
-@router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.DOWNLOAD['name']])
+@router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
 def get_file(userID : str, fileUUID : str):
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user.')
@@ -72,7 +72,7 @@ def get_file(userID : str, fileUUID : str):
 
 
 @router.delete('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
-@router.delete('/api/minizinc/{userID}/{fileUUID}/', tags=[info.DOWNLOAD['name']])
+@router.delete('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
 def delete_file(userID : str, fileUUID : str):
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user')

@@ -14,19 +14,12 @@ UPLOAD = {
 
 # Info about listing.
 FILES = {
-    'name': 'User',
+    'name': 'Minizinc',
     'description': "Endpoints for listing and deleting users and their files"
 }
 
 
-# Info about downloading.
-DOWNLOAD = {
-    'name': 'Download',
-    'description': "Endpoints for download and deleting a file for a user"
-}
 
 
 
-
-
-TAGS_METADATA = [UPLOAD, FILES, DOWNLOAD]
+TAGS_METADATA = [UPLOAD, FILES]
