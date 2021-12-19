@@ -1,6 +1,6 @@
 from os import stat
 from fastapi import FastAPI, Query, HTTPException, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from typing import Optional
 import google_storage
 import mysql_storage
