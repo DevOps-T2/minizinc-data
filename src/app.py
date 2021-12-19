@@ -1,12 +1,16 @@
+from http.client import responses
 from os import stat
-from fastapi import FastAPI, Query, HTTPException, APIRouter
+from fastapi import FastAPI, Query, HTTPException, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing import Optional
 import google_storage
 import mysql_storage
 import info
 import models
+import json
 
+UPLOAD_URL = '/api/minizinc/upload'
 
 app = FastAPI(
     title=info.TITLE,
@@ -16,12 +20,54 @@ app = FastAPI(
 )
 router = APIRouter()
 
+def is_upload_endpoint(endpoint):
+    return endpoint == UPLOAD_URL or endpoint == f'{UPLOAD_URL}/'
+
+
+async def extract_user_id(request):
+    if (request.method == 'POST'):
+        # User id is in body
+        print("BODY")
+        body = await request.body()
+        body = body.decode()
+        body = json.loads(body)
+        request_userID = body['userID']
+    elif('userID' in request.query_params):
+        # User id is in query param (they are not gauranteed to be here)
+        print("QUERY PARAMS")
+        request_userID = request.query_params['userID']
+    else:
+        # Hack to obtain the userID when its in the path, might break the middleware if a new endpoint is created.
+        print("PATH PARAMS")
+        request_userID = request.url.path.split('/')[3]
+    return request_userID
+
+
+@app.middleware('http')
+async def authorize(request: Request, call_next):
+    # edge case for requesting an upload url.
+    if is_upload_endpoint(request.url.path) and 'userID' not in request.query_params and request.method == 'GET':
+        response = await call_next(request)
+        return response
+    
+    header_userID = request.headers.get('userid').strip()
+    request_userID = (await extract_user_id(request)).strip()
+
+    if request_userID != header_userID and request.headers.get('role') != 'admin':
+        return JSONResponse(status_code=401)
+    if request_userID != header_userID and request.headers.get('role') == 'admin' and request.method != 'DELETE':
+        # Admins are only allowed to delete users file, not use/manipulate other users files.
+        return JSONResponse(status_code=401) 
+    print("reuqest")
+    response = await call_next(request)
+    print("done!")
+    return response
 
 
 # Had to include double route with and without trailing backslash to please the gateway-gods
 # See: https://github.com/tiangolo/fastapi/issues/2060
-@router.get('/api/minizinc/upload', response_model=models.SignedUrl, include_in_schema=False)
-@router.get('/api/minizinc/upload/', response_model=models.SignedUrl, tags=[info.UPLOAD['name']])
+@router.get(UPLOAD_URL, response_model=models.SignedUrl, include_in_schema=False)
+@router.get(f'{UPLOAD_URL}/', response_model=models.SignedUrl, tags=[info.UPLOAD['name']])
 def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
     # If UUID is given, it will create a link for PUT where you can update what is already stored
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
