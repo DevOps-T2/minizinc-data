@@ -45,6 +45,9 @@ async def extract_user_id(request):
 
 @app.middleware('http')
 async def authorize(request: Request, call_next):
+    if request.url.path == '/openapi.json' or request.url.path == '/docs':
+        response = await call_next(request)
+        return response
     # edge case for requesting an upload url.
     if is_upload_endpoint(request.url.path) and 'userID' not in request.query_params and request.method == 'GET':
         response = await call_next(request)
