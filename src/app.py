@@ -52,6 +52,18 @@ async def extract_user_id(request):
 
 @app.middleware('http')
 async def authorize(request: Request, call_next):
+    print("Method:", request.method)
+    print("Path:", request.url.path)
+    print("Port:", request.url.port)
+    print("Scheme:", request.url.scheme)
+    print("Header UserID:", request.headers.get('userid'))
+    print("Header Role:", request.headers.get('role'))
+    print("Query Params:", request.query_params)
+    print("Path params:", request.path_params)
+    print("Client IP:", request.client.host)
+    body = await request.body()
+    print("Body:", body)
+    
     if request.url.path == '/openapi.json' or request.url.path == '/docs':
         response = await call_next(request)
         return response
