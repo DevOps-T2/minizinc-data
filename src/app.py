@@ -11,6 +11,7 @@ import info
 import models
 
 UPLOAD_URL = '/api/minizinc/upload'
+SYS_ID = 'system'
 
 jwt_auth = HTTPBearer(scheme_name='JWT Token', description="""
 JWT Authorization header using the Bearer Scheme
@@ -39,7 +40,7 @@ router = APIRouter()
 def get_signed_upload_url(req : Request, userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
     if fileUUID and userID:
         header_userID = req.headers.get('userid')
-        if header_userID != userID:
+        if header_userID != userID and header_userID != SYS_ID:
             raise HTTPException(status_code=401, detail='Unauthorized')
         if not mysql_storage.file_exists(userID, fileUUID):
             raise HTTPException(status_code=404, detail='There does not exist a file with the given identifier')
@@ -51,7 +52,8 @@ def get_signed_upload_url(req : Request, userID : Optional[str] = Query(None), f
 @router.post('/api/minizinc/upload', include_in_schema=False)
 @router.post('/api/minizinc/upload/', tags=[info.UPLOAD['name']])
 def upload_file(file: models.File, req : Request):
-    if req.headers.get('userid') != file.userID:
+    header_userID = req.headers.get('userid')
+    if header_userID != file.userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not google_storage.file_exists(file.fileUUID):
         return HTTPException(status_code=400, detail='No such file found in storage')
@@ -65,7 +67,8 @@ def upload_file(file: models.File, req : Request):
 @router.get('/api/minizinc/{userID}', include_in_schema=False)
 @router.get('/api/minizinc/{userID}/', tags=[info.FILES['name']], response_model=List[models.File])
 def get_user_files(userID : str, req : Request):
-    if req.headers.get('userid') != userID:
+    header_userID = req.headers.get('userid')
+    if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.user_exists(userID):
         # No user files found
@@ -89,7 +92,8 @@ def delete_user(userID : str, req : Request):
 @router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
 @router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']], response_model=models.File)
 def get_file(userID : str, fileUUID : str, req : Request):
-    if req.headers.get('userid') != userID:
+    header_userID = req.headers.get('userid')
+    if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user.')
@@ -99,7 +103,8 @@ def get_file(userID : str, fileUUID : str, req : Request):
 @router.delete('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
 @router.delete('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
 def delete_file(userID : str, fileUUID : str, req : Request):
-    if req.headers.get('userid') != userID:
+    header_userID = req.headers.get('userid')
+    if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user')
