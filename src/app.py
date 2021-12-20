@@ -3,6 +3,7 @@ from fastapi.param_functions import Header
 from fastapi.params import Depends
 from typing import Optional
 from fastapi.security.http import HTTPBearer
+from typing import List
 
 import google_storage
 import mysql_storage
@@ -62,7 +63,7 @@ def upload_file(file: models.File, req : Request):
 
 
 @router.get('/api/minizinc/{userID}', include_in_schema=False)
-@router.get('/api/minizinc/{userID}/', tags=[info.FILES['name']])
+@router.get('/api/minizinc/{userID}/', tags=[info.FILES['name']], response_model=List[models.File])
 def get_user_files(userID : str, req : Request):
     if req.headers.get('userid') != userID:
         raise HTTPException(status_code=401, detail='Unauthorized')
@@ -86,7 +87,7 @@ def delete_user(userID : str, req : Request):
 
 
 @router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
-@router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
+@router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']], response_model=models.File)
 def get_file(userID : str, fileUUID : str, req : Request):
     if req.headers.get('userid') != userID:
         raise HTTPException(status_code=401, detail='Unauthorized')
