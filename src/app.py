@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException, APIRouter, Request
+from fastapi.param_functions import Header
 from fastapi.params import Depends
 from typing import Optional
 import google_storage
@@ -20,10 +21,11 @@ router = APIRouter()
 # See: https://github.com/tiangolo/fastapi/issues/2060
 @router.get(UPLOAD_URL, response_model=models.SignedUrl, include_in_schema=False)
 @router.get(f'{UPLOAD_URL}/', response_model=models.SignedUrl, tags=[info.UPLOAD['name']])
-def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
-    # If UUID is given, it will create a link for PUT where you can update what is already stored
-    # If UUID is not given you will be given a link for PUT where you can create a NEW file.
+def get_signed_upload_url(req : Request, userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
     if fileUUID and userID:
+        header_userID = req.headers.get('userid')
+        if header_userID != userID:
+            raise HTTPException(status_code=401, detail='Unauthorized')
         if not mysql_storage.file_exists(userID, fileUUID):
             raise HTTPException(status_code=404, detail='There does not exist a file with the given identifier')
         return google_storage.generatePostUrl(fileUUID)
@@ -33,7 +35,9 @@ def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Option
 
 @router.post('/api/minizinc/upload', include_in_schema=False)
 @router.post('/api/minizinc/upload/', tags=[info.UPLOAD['name']])
-def upload_file(file: models.File):
+def upload_file(file: models.File, req : Request):
+    if req.headers.get('userid') != file.userID:
+        raise HTTPException(status_code=401, detail='Unauthorized')
     if not google_storage.file_exists(file.fileUUID):
         return HTTPException(status_code=400, detail='No such file found in storage')
     if mysql_storage.file_exists(file.userID, file.fileUUID):
@@ -45,7 +49,9 @@ def upload_file(file: models.File):
 
 @router.get('/api/minizinc/{userID}', include_in_schema=False)
 @router.get('/api/minizinc/{userID}/', tags=[info.FILES['name']])
-def get_user_files(userID : str):
+def get_user_files(userID : str, req : Request):
+    if req.headers.get('userid') != userID:
+        raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.user_exists(userID):
         # No user files found
         return []
@@ -54,7 +60,9 @@ def get_user_files(userID : str):
 
 @router.delete('/api/minizinc/{userID}', include_in_schema=False)
 @router.delete('/api/minizinc/{userID}/', tags=[info.FILES['name']])
-def delete_user(userID : str):
+def delete_user(userID : str, req : Request):
+    if req.headers.get('role') != 'admin':
+        raise HTTPException(status_code=401, detail='Unauthorized')
     files = mysql_storage.get_files(userID)
     for file in files:
         google_storage.delete_file(file.fileUUID)
@@ -65,7 +73,9 @@ def delete_user(userID : str):
 
 @router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
 @router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
-def get_file(userID : str, fileUUID : str):
+def get_file(userID : str, fileUUID : str, req : Request):
+    if req.headers.get('userid') != userID:
+        raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user.')
     return google_storage.generateGetUrl(fileName=fileUUID)
@@ -73,7 +83,9 @@ def get_file(userID : str, fileUUID : str):
 
 @router.delete('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
 @router.delete('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
-def delete_file(userID : str, fileUUID : str):
+def delete_file(userID : str, fileUUID : str, req : Request):
+    if req.headers.get('userid') != userID:
+        raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user')
     files = mysql_storage.get_file(userID, fileUUID)
