@@ -45,7 +45,7 @@ def get_signed_upload_url(req : Request, res : Response, userID : Optional[str] 
         if header_userID != userID and header_userID != SYS_ID:
             raise HTTPException(status_code=401, detail='Unauthorized')
         if not mysql_storage.file_exists(userID, fileUUID):
-            res.status_code = status.HTTP_204_NO_CONTENT
+            res.status_code = status.HTTP_200_OK
             return "No file to generate update link for"
         return google_storage.generatePostUrl(fileUUID)
     else:
@@ -59,7 +59,7 @@ def upload_file(file: models.File, req : Request, res : Response):
     if header_userID != file.userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not google_storage.file_exists(file.fileUUID):
-        res.status_code = status.HTTP_204_NO_CONTENT
+        res.status_code = status.HTTP_200_OK
         return "No file to update"
     if mysql_storage.file_exists(file.userID, file.fileUUID):
         mysql_storage.update_file(file)
@@ -75,7 +75,7 @@ def get_user_files(userID : str, req : Request, res : Response):
     if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.user_exists(userID):
-        res.status_code = status.HTTP_204_NO_CONTENT
+        res.status_code = status.HTTP_200_OK
         return []
     return mysql_storage.get_files(userID)
 
@@ -91,7 +91,7 @@ def delete_user(userID : str, req : Request, res : Response):
     # Delete all files for the user from google storage.
     row_count = mysql_storage.delete_files(userID)
     if row_count == 0:
-        res.status_code = status.HTTP_204_NO_CONTENT
+        res.status_code = status.HTTP_200_OK
         return "No files were deleted"
     return f'Success! - {row_count} file(s) deleted'
 
@@ -103,7 +103,7 @@ def get_file(userID : str, fileUUID : str, req : Request, res : Response):
     if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
-        res.status_code = status.HTTP_204_NO_CONTENT
+        res.status_code = status.HTTP_200_OK
         return "File does not exist"
     return google_storage.generateGetUrl(fileName=fileUUID)
 
@@ -115,7 +115,7 @@ def delete_file(userID : str, fileUUID : str, req : Request, res : Response):
     if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
-        res.status_code = status.HTTP_204_NO_CONTENT
+        res.status_code = status.HTTP_200_OK
         return "File does not exist"
     files = mysql_storage.get_file(userID, fileUUID)
     google_storage.delete_file(fileUUID)
