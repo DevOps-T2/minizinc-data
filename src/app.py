@@ -49,7 +49,7 @@ async def extract_user_id(request):
         request_userID = request.url.path.split('/')[3]
     return request_userID
 
-'''
+
 @app.middleware('http')
 async def authorize(request: Request, call_next):
     print("Method:", request.method)
@@ -100,7 +100,7 @@ async def authorize(request: Request, call_next):
     response = await call_next(request)
     print("done!")
     return response
-'''
+
 
 
 # Had to include double route with and without trailing backslash to please the gateway-gods
