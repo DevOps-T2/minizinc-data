@@ -2,12 +2,26 @@ from fastapi import FastAPI, Query, HTTPException, APIRouter, Request
 from fastapi.param_functions import Header
 from fastapi.params import Depends
 from typing import Optional
+from fastapi.security.http import HTTPBearer
+
 import google_storage
 import mysql_storage
 import info
 import models
 
 UPLOAD_URL = '/api/minizinc/upload'
+
+jwt_auth = HTTPBearer(scheme_name='JWT Token', description="""
+JWT Authorization header using the Bearer Scheme
+
+Enter 'Bearer'[space] and then your token in the text input below.
+
+Example: "Bearer 123asd"
+
+Name: ''Authorization''
+
+In: ''header''
+""")
 
 app = FastAPI(
     title=info.TITLE,
@@ -94,4 +108,4 @@ def delete_file(userID : str, fileUUID : str, req : Request):
     return 'Success! - {row_count} file(s) deleted'
 
 
-app.include_router(router)
+app.include_router(router, dependencies=[Depends(jwt_auth)])
