@@ -24,6 +24,13 @@ def is_upload_endpoint(endpoint):
     return endpoint == UPLOAD_URL or endpoint == f'{UPLOAD_URL}/'
 
 
+def is_delete_user(endpoint):
+    arr = endpoint.split('/')
+    if len(arr) == 5:
+        return arr[-1] == ''
+    return len(arr) == 4
+
+
 async def extract_user_id(request):
     if (request.method == 'POST'):
         # User id is in body
@@ -65,9 +72,18 @@ async def authorize(request: Request, call_next):
     request_userID = (await extract_user_id(request)).strip()
     if request_userID != header_userID and header_role != 'admin':
         return JSONResponse(status_code=401)
-    if request_userID != header_userID and header_role == 'admin' and request.method != 'DELETE':
-        # Admins are only allowed to delete all users file, not use/manipulate other users files.
-        return JSONResponse(status_code=401)
+    
+    # Alot of checking to see if it is an admin requesting for a user to be deleted.
+    is_request_for_different_user = request_userID != header_userID
+    is_admin = header_role == 'admin'
+    is_delete = request.method == 'DELETE'
+    is_del_user = is_delete_user(request.url.path)
+    if is_request_for_different_user and is_admin:
+        if not is_delete:
+            return JSONResponse(status_code=401)
+        if not is_del_user:
+            return JSONResponse(status_code=401)
+
     print("reuqest")
     response = await call_next(request)
     print("done!")
