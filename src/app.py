@@ -5,6 +5,8 @@ from typing import Optional
 from fastapi.security.http import HTTPBearer
 from typing import List
 
+from starlette.responses import JSONResponse
+
 import google_storage
 import mysql_storage
 import info
@@ -43,7 +45,7 @@ def get_signed_upload_url(req : Request, userID : Optional[str] = Query(None), f
         if header_userID != userID and header_userID != SYS_ID:
             raise HTTPException(status_code=401, detail='Unauthorized')
         if not mysql_storage.file_exists(userID, fileUUID):
-            raise HTTPException(status_code=404, detail='There does not exist a file with the given identifier')
+            return JSONResponse(status_code=204, content={"message": "No such file exists"})
         return google_storage.generatePostUrl(fileUUID)
     else:
         return google_storage.generatePostUrl()
@@ -56,7 +58,7 @@ def upload_file(file: models.File, req : Request):
     if header_userID != file.userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not google_storage.file_exists(file.fileUUID):
-        return HTTPException(status_code=400, detail='No such file found in storage')
+        return JSONResponse(status_code=204, content={"message": "File is not uploaded to storage"})
     if mysql_storage.file_exists(file.userID, file.fileUUID):
         mysql_storage.update_file(file)
         return "File Updated!"
@@ -71,8 +73,7 @@ def get_user_files(userID : str, req : Request):
     if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.user_exists(userID):
-        # No user files found
-        return []
+        return JSONResponse(status_code=204, content={[]})
     return mysql_storage.get_files(userID)
 
 
@@ -80,12 +81,14 @@ def get_user_files(userID : str, req : Request):
 @router.delete('/api/minizinc/{userID}/', tags=[info.FILES['name']])
 def delete_user(userID : str, req : Request):
     if req.headers.get('role') != 'admin':
-        raise HTTPException(status_code=401, detail='Unauthorized')
+        raise HTTPException(status_code=403, detail='Forbidden')
     files = mysql_storage.get_files(userID)
     for file in files:
         google_storage.delete_file(file.fileUUID)
     # Delete all files for the user from google storage.
     row_count = mysql_storage.delete_files(userID)
+    if row_count == 0:
+        return JSONResponse(status_code=204, content={"message": "No files were deleted"})
     return f'Success! - {row_count} file(s) deleted'
 
 
@@ -96,7 +99,7 @@ def get_file(userID : str, fileUUID : str, req : Request):
     if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
-        raise HTTPException(status_code=404, detail='No such file exists for the given user.')
+        return JSONResponse(status_code=204, content={"message": "File does not exist"})
     return google_storage.generateGetUrl(fileName=fileUUID)
 
 
@@ -107,11 +110,11 @@ def delete_file(userID : str, fileUUID : str, req : Request):
     if header_userID != userID and header_userID != SYS_ID:
         raise HTTPException(status_code=401, detail='Unauthorized')
     if not mysql_storage.file_exists(userID, fileUUID):
-        raise HTTPException(status_code=404, detail='No such file exists for the given user')
+        return JSONResponse(status_code=204, content={"message": "File does not exist"})
     files = mysql_storage.get_file(userID, fileUUID)
     google_storage.delete_file(fileUUID)
     row_count = mysql_storage.delete_file(userID, fileUUID)
     return 'Success! - {row_count} file(s) deleted'
 
 
-app.include_router(router)#, dependencies=[Depends(jwt_auth)])
+app.include_router(router)
