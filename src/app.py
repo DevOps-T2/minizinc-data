@@ -52,15 +52,22 @@ async def authorize(request: Request, call_next):
     if is_upload_endpoint(request.url.path) and 'userID' not in request.query_params and request.method == 'GET':
         response = await call_next(request)
         return response
-    
-    header_userID = request.headers.get('userid').strip()
-    request_userID = (await extract_user_id(request)).strip()
 
-    if request_userID != header_userID and request.headers.get('role') != 'admin':
+    header_userID = request.headers.get('userid')
+    header_role = request.headers.get('role')
+    if not header_userID or not request.headers.get('role'):
+        response = JSONResponse(status_code=401)
+
+    header_userID = header_userID.strip()
+    header_role = header_role.strip()
+    
+    
+    request_userID = (await extract_user_id(request)).strip()
+    if request_userID != header_userID and header_role != 'admin':
         return JSONResponse(status_code=401)
-    if request_userID != header_userID and request.headers.get('role') == 'admin' and request.method != 'DELETE':
-        # Admins are only allowed to delete users file, not use/manipulate other users files.
-        return JSONResponse(status_code=401) 
+    if request_userID != header_userID and header_role == 'admin' and request.method != 'DELETE':
+        # Admins are only allowed to delete all users file, not use/manipulate other users files.
+        return JSONResponse(status_code=401)
     print("reuqest")
     response = await call_next(request)
     print("done!")
