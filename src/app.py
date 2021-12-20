@@ -109,4 +109,4 @@ def delete_file(userID : str, fileUUID : str, req : Request):
     return 'Success! - {row_count} file(s) deleted'
 
 
-app.include_router(router, dependencies=[Depends(jwt_auth)])
+app.include_router(router)#, dependencies=[Depends(jwt_auth)])
