@@ -94,7 +94,7 @@ async def authorize(request: Request, call_next):
 # See: https://github.com/tiangolo/fastapi/issues/2060
 @router.get(UPLOAD_URL, response_model=models.SignedUrl, include_in_schema=False)
 @router.get(f'{UPLOAD_URL}/', response_model=models.SignedUrl, tags=[info.UPLOAD['name']])
-def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
+async def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Optional[str] = Query(None)):
     # If UUID is given, it will create a link for PUT where you can update what is already stored
     # If UUID is not given you will be given a link for PUT where you can create a NEW file.
     if fileUUID and userID:
@@ -107,7 +107,7 @@ def get_signed_upload_url(userID : Optional[str] = Query(None), fileUUID: Option
 
 @router.post('/api/minizinc/upload', include_in_schema=False)
 @router.post('/api/minizinc/upload/', tags=[info.UPLOAD['name']])
-def upload_file(file: models.File):
+async def upload_file(file: models.File):
     if not google_storage.file_exists(file.fileUUID):
         return HTTPException(status_code=400, detail='No such file found in storage')
     if mysql_storage.file_exists(file.userID, file.fileUUID):
@@ -119,7 +119,7 @@ def upload_file(file: models.File):
 
 @router.get('/api/minizinc/{userID}', include_in_schema=False)
 @router.get('/api/minizinc/{userID}/', tags=[info.FILES['name']])
-def get_user_files(userID : str):
+async def get_user_files(userID : str):
     if not mysql_storage.user_exists(userID):
         # No user files found
         return []
@@ -128,7 +128,7 @@ def get_user_files(userID : str):
 
 @router.delete('/api/minizinc/{userID}', include_in_schema=False)
 @router.delete('/api/minizinc/{userID}/', tags=[info.FILES['name']])
-def delete_user(userID : str):
+async def delete_user(userID : str):
     files = mysql_storage.get_files(userID)
     for file in files:
         google_storage.delete_file(file.fileUUID)
@@ -139,7 +139,7 @@ def delete_user(userID : str):
 
 @router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
 @router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
-def get_file(userID : str, fileUUID : str):
+async def get_file(userID : str, fileUUID : str):
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user.')
     return google_storage.generateGetUrl(fileName=fileUUID)
@@ -147,7 +147,7 @@ def get_file(userID : str, fileUUID : str):
 
 @router.delete('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
 @router.delete('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
-def delete_file(userID : str, fileUUID : str):
+async def delete_file(userID : str, fileUUID : str):
     if not mysql_storage.file_exists(userID, fileUUID):
         raise HTTPException(status_code=404, detail='No such file exists for the given user')
     files = mysql_storage.get_file(userID, fileUUID)
