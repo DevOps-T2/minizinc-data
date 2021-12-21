@@ -8,7 +8,6 @@ import mysql_storage
 import info
 import models
 
-print("test")
 
 UPLOAD_URL = '/api/minizinc/upload'
 SYS_ID = 'system'
