@@ -22,8 +22,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - minizinc-data
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
