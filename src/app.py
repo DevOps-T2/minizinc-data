@@ -1,11 +1,7 @@
 from fastapi import FastAPI, Query, HTTPException, APIRouter, Request, Response, status
-from fastapi.param_functions import Header
-from fastapi.params import Depends
 from typing import Optional
-from fastapi.security.http import HTTPBearer
 from typing import List
 
-from starlette.responses import JSONResponse
 
 import google_storage
 import mysql_storage
@@ -14,18 +10,6 @@ import models
 
 UPLOAD_URL = '/api/minizinc/upload'
 SYS_ID = 'system'
-
-jwt_auth = HTTPBearer(scheme_name='JWT Token', description="""
-JWT Authorization header using the Bearer Scheme
-
-Enter 'Bearer'[space] and then your token in the text input below.
-
-Example: "Bearer 123asd"
-
-Name: ''Authorization''
-
-In: ''header''
-""")
 
 app = FastAPI(
     title=info.TITLE,
@@ -97,7 +81,7 @@ def delete_user(userID : str, req : Request, res : Response):
 
 
 @router.get('/api/minizinc/{userID}/{fileUUID}', include_in_schema=False)
-@router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']], response_model=models.File)
+@router.get('/api/minizinc/{userID}/{fileUUID}/', tags=[info.FILES['name']])
 def get_file(userID : str, fileUUID : str, req : Request, res : Response):
     header_userID = req.headers.get('userid')
     if header_userID != userID and header_userID != SYS_ID:
