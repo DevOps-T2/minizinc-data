@@ -1,6 +1,7 @@
 [
     {
         "origin": ["*"],
-        "method": ["GET", "PUT"]
+        "method": ["GET", "PUT"],
+        "responseHeader": ["*"]
     }
 ]
