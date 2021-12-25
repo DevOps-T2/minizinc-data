@@ -4,11 +4,15 @@ from google import auth
 from datetime import timedelta
 from models import SignedUrl
 import uuid
+import dotenv
+import os
+
+dotenv.load_dotenv()
 
 
 CREDENTIALS = service_account.Credentials.from_service_account_file('key.json')
 STORAGE_CLIENT = storage.Client(credentials=CREDENTIALS)
-BUCKET_NAME = 'minizinc_data'
+BUCKET_NAME = os.environ.get('BUCKET_NAME')
 
 # Any link generated will expire in x mintues from now where x=EXPIRE_MINUTES
 EXPIRE_MINUTES = 15

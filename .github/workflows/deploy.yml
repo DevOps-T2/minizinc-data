@@ -64,6 +64,13 @@ jobs:
           echo "$SA_KEY" | base64 --decode >> ./src/key.json
         env:
           SA_KEY: ${{ secrets.GKE_STORAGE_SA_KEY }}
+      
+      # Create env file for bucket name.
+      - name: Create .env file
+        run: |-
+          echo "$BUCKET_NAME" >> ./src/.env
+        env:
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           
 
       # Build the Docker image
