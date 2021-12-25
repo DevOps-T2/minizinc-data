@@ -68,7 +68,7 @@ jobs:
       # Create env file for bucket name.
       - name: Create .env file
         run: |-
-          echo "$BUCKET_NAME" >> ./src/.env
+          echo "BUCKET_NAME=$BUCKET_NAME" >> ./src/.env
         env:
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           

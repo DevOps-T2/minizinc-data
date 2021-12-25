@@ -9,7 +9,6 @@ import os
 
 dotenv.load_dotenv()
 
-
 CREDENTIALS = service_account.Credentials.from_service_account_file('key.json')
 STORAGE_CLIENT = storage.Client(credentials=CREDENTIALS)
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
